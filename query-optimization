@@ -1,0 +1,105 @@
+#  Identifying slow-running queries:
+# Timing a complex query
+import time
+
+start_time = time.time()
+query = """
+WITH StoreSales AS (
+   SELECT
+       e.store_location,
+       e.employee_id,
+       e.role,
+       p.category,
+       c.loyalty_program,
+       COUNT(s.transaction_id) AS total_sales,
+       SUM(s.quantity) AS total_units_sold,
+       SUM(s.total_amount) AS total_revenue
+   FROM Sales_Transactions s
+   JOIN Employee_Records e ON s.employee_id = e.employee_id
+   JOIN Product_Details p ON s.product_id = p.product_id
+   JOIN Customer_Demographics c ON s.customer_id = c.customer_id
+   WHERE p.category IN ('Electronics', 'Accessories')
+   GROUP BY e.store_location, e.employee_id, e.role, p.category, c.loyalty_program
+),
+
+StoreRankings AS (
+   SELECT
+       store_location,
+       category,
+       SUM(total_revenue) AS store_revenue
+   FROM StoreSales
+   GROUP BY store_location, category
+)
+
+SELECT
+   ss.store_location,
+   ss.employee_id,
+   ss.role,
+   ss.category,
+   ss.loyalty_program,
+   ss.total_sales,
+   ss.total_units_sold,
+   ss.total_revenue
+FROM StoreSales ss
+JOIN StoreRankings sr ON ss.store_location = sr.store_location AND ss.category = sr.category
+ORDER BY ss.store_location, ss.total_revenue DESC;
+
+"""
+
+
+df = pd.read_sql_query(query, conn)
+end_time = time.time()
+
+# Creating an index
+cursor.execute("CREATE INDEX idx_product_category ON Product_Details(category)")
+conn.commit()
+
+# AI optimized query:
+start_time = time.time()
+query = """
+WITH StoreSales AS (
+    SELECT
+        e.store_location,
+        e.employee_id,
+        e.role,
+        p.category,
+        c.loyalty_program,
+        COUNT(*) AS total_sales,
+        SUM(s.quantity) AS total_units_sold,
+        SUM(s.total_amount) AS total_revenue
+    FROM Sales_Transactions s
+    JOIN Employee_Records e ON s.employee_id = e.employee_id
+    JOIN Product_Details p ON s.product_id = p.product_id
+    JOIN Customer_Demographics c ON s.customer_id = c.customer_id
+    WHERE p.category IN ('Electronics', 'Accessories')
+    GROUP BY
+        e.store_location,
+        e.employee_id,
+        e.role,
+        p.category,
+        c.loyalty_program
+)
+
+SELECT
+    ss.store_location,
+    ss.employee_id,
+    ss.role,
+    ss.category,
+    ss.loyalty_program,
+    ss.total_sales,
+    ss.total_units_sold,
+    ss.total_revenue
+FROM StoreSales ss
+ORDER BY
+    ss.store_location,
+    ss.total_revenue DESC;
+
+"""
+
+df = pd.read_sql_query(query, conn)
+end_time = time.time()
+print(f"Query execution time: {end_time - start_time} seconds")
+
+# Closing the database connection 
+conn.close()
+print(f"Query execution time: {end_time - start_time} seconds")
