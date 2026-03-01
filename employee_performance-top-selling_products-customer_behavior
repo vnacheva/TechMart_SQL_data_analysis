@@ -1,0 +1,79 @@
+# Analyzing employee performance by location:
+query = """
+WITH emp_sales AS (
+    SELECT store_location, 
+           AVG(CAST(sales_performance AS FLOAT)) as avg_sales,
+           COUNT(*) as employee_count
+    FROM Employee_Records
+    WHERE sales_performance IS NOT NULL
+    GROUP BY store_location
+)
+SELECT store_location, avg_sales, employee_count,
+       RANK() OVER (ORDER BY avg_sales DESC) as location_rank
+FROM emp_sales
+ORDER BY avg_sales DESC
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
+
+# Identifying top-selling products by category:
+query = """
+SELECT *
+FROM (
+    SELECT p.category,
+           p.product_name,
+           SUM(s.quantity) AS total_sold,
+           RANK() OVER (
+               PARTITION BY p.category
+               ORDER BY SUM(s.quantity) DESC
+           ) AS rank_in_category
+    FROM Sales_Transactions s
+    JOIN Product_Details p ON s.product_id = p.product_id
+    GROUP BY p.category, p.product_name
+)
+WHERE rank_in_category <= 3
+ORDER BY category, total_sold DESC
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
+
+# Analyzing customer purchasing behavior:
+query = """
+SELECT
+    c.customer_id,
+    c.location,
+    c.loyalty_program,
+
+    COUNT(s.transaction_id) AS total_purchases,
+    SUM(s.total_amount) AS total_spent,
+    AVG(s.total_amount) AS avg_order_value,
+
+    -- Window: Rank customers by total spending
+    RANK() OVER (
+        ORDER BY SUM(s.total_amount) DESC
+    ) AS spending_rank,
+
+    -- Window: Running total per customer (lifetime spend trend)
+    SUM(s.total_amount) OVER (
+        PARTITION BY c.customer_id
+        ORDER BY s.sale_date
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS running_total_spent
+
+FROM Customer_Demographics c
+JOIN Sales_Transactions s
+    ON c.customer_id = s.customer_id
+
+GROUP BY
+    c.customer_id,
+    c.location,
+    c.loyalty_program
+
+ORDER BY total_spent DESC;
+
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
+
+
+
