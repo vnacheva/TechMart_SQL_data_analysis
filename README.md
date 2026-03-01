@@ -28,5 +28,3 @@ It includes demographic information such as age, gender, and location, as well a
 There is need to address gaps in the data, particularly in the age and loyalty program fields where "nan" or "N/A" values are present.
 
 -Sales Transactions (Sales_Transactions): This is the core dataset, containing detailed records of individual sales transactions. Each entry includes transaction ID, customer ID, product ID, employee ID, quantity sold, total amount, and sale date. You'll face various data quality challenges here, including missing values, incorrect data formats (like "three" instead of a number), and "nan" entries.
-
-Working with these four datasets will require you to apply a wide range of SQL skills. You'll need to clean the data, handle inconsistencies, and join tables to extract meaningful insights. This multi-faceted approach mirrors real-world scenarios where data analysts often work with complex, interrelated datasets to drive business decisions.
