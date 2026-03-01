@@ -1,0 +1,90 @@
+import sqlite3
+import pandas as pd
+
+# Setting up the database. 
+from techsmart_db_setup import setup_database
+setup_database() 
+conn = sqlite3.connect('techsmart.db')
+
+# Load and display tables
+tables = ['Employee_Records', 'Product_Details', 'Customer_Demographics', 'Sales_Transactions']
+for table in tables:
+    query = f"SELECT * FROM {table} LIMIT 5"
+    df = pd.read_sql_query(query, conn)
+    print(f"\n{table}:")
+    display(df)
+
+# Identifying and handling missing values
+query = """
+SELECT COUNT(*) as total_rows,
+       SUM(CASE WHEN sales_performance IS NULL OR sales_performance = 'nan' THEN 1 ELSE 0 END) as missing_sales
+FROM Employee_Records
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
+
+query = """
+SELECT COUNT(*) as total_rows,
+       SUM(CASE WHEN loyalty_program IS NULL OR loyalty_program = 'nan' THEN 1 ELSE 0 END) as missing_loyalty
+FROM Customer_Demographics;
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
+
+query = """
+SELECT COUNT(*) as total_rows,
+       SUM(CASE WHEN employee_id IS NULL OR employee_id = 'nan' THEN 1 ELSE 0 END) as missing_id
+FROM Sales_Transactions;
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
+
+query = """
+SELECT COUNT(*) as total_rows,
+       SUM(CASE WHEN total_amount IS NULL OR total_amount = 'nan' THEN 1 ELSE 0 END) as missing_amount
+FROM Sales_Transactions;
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
+
+# Cleaning inconsistent data formats
+# Standardizing sales_performance in Employee_Records:
+query = """
+UPDATE Employee_Records
+SET sales_performance = CASE
+    WHEN sales_performance = 'nan' THEN NULL
+    WHEN sales_performance = 'five thousand' THEN '5000'
+    ELSE sales_performance
+END
+"""
+cursor = conn.cursor()
+cursor.execute(query)
+conn.commit()
+
+# Cleaning inconsistend data in other tables:
+updated_query = """
+UPDATE Product_Details
+SET 
+    price = CASE
+        WHEN price = 'nan' THEN NULL
+        WHEN price = 'fifty' THEN '50'
+        WHEN price = 'one hundred' THEN '100'
+        WHEN price = 'five hundred' THEN '500'
+        ELSE price
+    END,
+    stock = CASE
+        WHEN stock = 'NaN' THEN NULL
+        ELSE stock
+    END
+"""
+cursor = conn.cursor()
+cursor.execute(updated_query)
+conn.commit()
+
+select_query = "SELECT * FROM Product_Details"
+
+print("Rows updated:", cursor.rowcount)
+df = pd.read_sql_query(select_query, conn)
+display(df)
+
+
