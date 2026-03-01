@@ -5,12 +5,16 @@ As a rapidly expanding business, TechMart faces numerous challenges and opportun
 Analyzing TechMart's data is crucial for several reasons:
 
 -It provides valuable insights into sales trends across different regions and product categories.
+
 -It helps identify customer preferences and buying patterns.
+
 -It allows for assessment of employee performance and productivity.
+
 -It aids in optimizing inventory management across various locations.
 
 The TechMart Datasets: 
 In this project there are four interconnected tables that provide a comprehensive view of TechMart's operations. Each table offers unique insights and challenges:
+
 -Employee Records (Employee_Records): This dataset contains valuable information about TechMart's workforce. 
 There are available details on employee IDs, job roles, store locations, and sales performance. 
 There are some data inconsistencies, such as missing values and non-numeric representations of sales figures.
