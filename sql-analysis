@@ -1,0 +1,48 @@
+import sqlite3
+import pandas as pd
+
+# Setting up the database. 
+from techsmart_db_setup import setup_database
+setup_database() 
+conn = sqlite3.connect('techsmart.db')
+
+# Load and display tables
+tables = ['Employee_Records', 'Product_Details', 'Customer_Demographics', 'Sales_Transactions']
+for table in tables:
+    query = f"SELECT * FROM {table} LIMIT 5"
+    df = pd.read_sql_query(query, conn)
+    print(f"\n{table}:")
+    display(df)
+
+# Identifying and handling missing values
+query = """
+SELECT COUNT(*) as total_rows,
+       SUM(CASE WHEN sales_performance IS NULL OR sales_performance = 'nan' THEN 1 ELSE 0 END) as missing_sales
+FROM Employee_Records
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
+
+query = """
+SELECT COUNT(*) as total_rows,
+       SUM(CASE WHEN loyalty_program IS NULL OR loyalty_program = 'nan' THEN 1 ELSE 0 END) as missing_loyalty
+FROM Customer_Demographics;
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
+
+query = """
+SELECT COUNT(*) as total_rows,
+       SUM(CASE WHEN employee_id IS NULL OR employee_id = 'nan' THEN 1 ELSE 0 END) as missing_id
+FROM Sales_Transactions;
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
+
+query = """
+SELECT COUNT(*) as total_rows,
+       SUM(CASE WHEN total_amount IS NULL OR total_amount = 'nan' THEN 1 ELSE 0 END) as missing_amount
+FROM Sales_Transactions;
+"""
+df = pd.read_sql_query(query, conn)
+display(df)
