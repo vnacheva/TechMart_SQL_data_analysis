@@ -46,3 +46,45 @@ FROM Sales_Transactions;
 """
 df = pd.read_sql_query(query, conn)
 display(df)
+
+# Cleaning inconsistent data formats
+# Standardizing sales_performance in Employee_Records:
+query = """
+UPDATE Employee_Records
+SET sales_performance = CASE
+    WHEN sales_performance = 'nan' THEN NULL
+    WHEN sales_performance = 'five thousand' THEN '5000'
+    ELSE sales_performance
+END
+"""
+cursor = conn.cursor()
+cursor.execute(query)
+conn.commit()
+
+# Cleaning inconsistend data in other tables:
+updated_query = """
+UPDATE Product_Details
+SET 
+    price = CASE
+        WHEN price = 'nan' THEN NULL
+        WHEN price = 'fifty' THEN '50'
+        WHEN price = 'one hundred' THEN '100'
+        WHEN price = 'five hundred' THEN '500'
+        ELSE price
+    END,
+    stock = CASE
+        WHEN stock = 'NaN' THEN NULL
+        ELSE stock
+    END
+"""
+cursor = conn.cursor()
+cursor.execute(updated_query)
+conn.commit()
+
+select_query = "SELECT * FROM Product_Details"
+
+print("Rows updated:", cursor.rowcount)
+df = pd.read_sql_query(select_query, conn)
+display(df)
+
+
